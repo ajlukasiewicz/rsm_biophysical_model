@@ -33,6 +33,7 @@ class ViennaRNA(dict):
 
         self["sequences"] = Sequence_List
         self["material"] = material
+        self['maxBPint'] = str(78)
 
         random.seed(time.time())
         long_id = "".join([random.choice(string.ascii_letters + string.digits) for x in range(10)])
@@ -73,17 +74,19 @@ class ViennaRNA(dict):
             outputPS_str = " "
         else:
             outputPS_str = " --noPS "
-            
+
+        maxbp = '--maxBPspan=' + self['maxBPint'] + ' '
+
         if constraints is None:
-            args = outputPS_str + dangles + param_file + self.prefix
+            args = outputPS_str + dangles + maxbp + param_file + self.prefix
 
         else:
-            args = outputPS_str + dangles + "-C " + param_file + self.prefix
+            args = outputPS_str + dangles + maxbp + "-C " + param_file + self.prefix
 
 
         #Call ViennaRNA C programs
         cmd = "RNAfold"
-        print("Calling RNAfold" + cmd + args)
+        print("Calling RNAfold: " + cmd + args)
 
         output = subprocess.Popen(cmd + args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines = True) #newlines argument was added because subprocess.popen was appending b's to the list output (byte stuff? I dont totally understand)
         std_out = output.communicate()[0]
@@ -159,13 +162,15 @@ class ViennaRNA(dict):
             outputPS_str = " "
         else:
             outputPS_str = " -noPS "
+        
+        maxbp = '--maxBPspan=' + self['maxBPint'] + ' '
 
         #Call ViennaRNA C programs
         cmd = "RNAsubopt"
         if constraints is None:
-            args = " -e " + str(energy_gap) + dangles + param_file + " < " + self.prefix
+            args = " -e " + str(energy_gap) + dangles + maxbp + param_file + " < " + self.prefix
         else:
-            args = " -e " + str(energy_gap) + dangles + "-C " + param_file + " < " + self.prefix
+            args = " -e " + str(energy_gap) + dangles + maxbp + "-C " + param_file + " < " + self.prefix
 
         print("Calling RNAsubopt" + cmd + args)
         output = subprocess.Popen(cmd + args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines = True) #newlines argument was added because subprocess.popen was appending b's to the list output (byte stuff? I dont totally understand)
