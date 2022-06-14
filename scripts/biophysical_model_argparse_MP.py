@@ -7,7 +7,6 @@ import itertools
 #import RNA
 import pandas as pd
 from RBS_Calculator import *
-#from RBS_Calculator_Vienna import *
 from ViennaRNA import *
 import multiprocessing as mp
 
