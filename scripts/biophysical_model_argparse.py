@@ -804,7 +804,7 @@ if __name__ == "__main__":
             print("TOP 5: ", sortedSingleBindingSiteList[0:5])
             print("%s DOUBLE BINDING SITES (CsrA only)" % len(sortedDoubleBindingSiteList))
             print("TOP 5: ", sortedDoubleBindingSiteList[0:5])
-            (sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding) = calculateFoldingFreeEnergies(use_MPI, sequence, CsrA_siteFoldingConstraint, sortedSingleBindingSiteList[0:1], sortedDoubleBindingSiteList[0:1]) 
+            (sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding) = calculateFoldingFreeEnergies(use_MPI, sequence, CsrA_siteFoldingConstraint, sortedSingleBindingSiteList, sortedDoubleBindingSiteList) 
             print("TOP 5: SINGLE BINDING SITES (CsrA + RNA shape change)")
             print([(begin_pos, dG_total, ddG_RNA, RNA_bound['structure']) for (begin_pos, dG_total, dG_protein, ddG_RNA, RNA_ref, RNA_bound, cutoffs) in sortedSingleBindingSiteList_RNAFolding[0:5]])
             print("TOP 5: DOUBLE BINDING SITES (CsrA + RNA shape change)")
