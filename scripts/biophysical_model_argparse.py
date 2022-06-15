@@ -812,10 +812,10 @@ if __name__ == "__main__":
             if options.trans == "y":
                 print("Starting RBS Calculator")
                 start_codon_list = startCodonDict[gene]
-                print(start_codon_list)
+                #print(start_codon_list)
                 (sequence, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites) = predictTranslationRates(sequence, start_codon_list, sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding)
                 calculationsDict['translation'][gene] = (sequence, start_codon_list, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites)
-                print(calculationsDict)
+                #print(calculationsDict)
             
         except:
             print("ERROR. Skipping %s gene." % gene)

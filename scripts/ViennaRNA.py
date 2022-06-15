@@ -13,7 +13,7 @@ class ViennaRNA(dict):
 
     debug_mode = 0
     RT = 0.61597 #gas constant times 310 Kelvin (in units of kcal/mol)
-    param_file = "-P rna_turner1999.par "
+    param_file = "-P rna_turner2004.par "
 
 
     def __init__(self,Sequence_List,material = "rna37"):
@@ -219,7 +219,7 @@ class ViennaRNA(dict):
 
         self["subopt_NumStructs"] = counter
 
-        #self._cleanup()
+        self._cleanup()
         self["program"] = "subopt"
 
         print("Minimum free energy and suboptimal secondary structures have been calculated.")
@@ -280,7 +280,7 @@ class ViennaRNA(dict):
         self["energy_basepairing_x"] = [base_pairing_x]
         self["energy_basepairing_y"] = [base_pairing_y]
         self["energy_bracket_string"] = bracket_string
-        #self._cleanup()
+        self._cleanup()
 
         return energy
 
