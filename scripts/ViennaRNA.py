@@ -61,7 +61,7 @@ class ViennaRNA(dict):
         #Set arguments
         material = self["material"]
 
-        param_file = "-P rna_turner1999.par "
+        param_file = "-P rna_turner2004.par "
 
         if dangles is "none":
             dangles = " -d0 "
@@ -135,7 +135,7 @@ class ViennaRNA(dict):
 
         if Temp <= 0: raise ValueError("The specified temperature must be greater than zero.")
         
-        param_file = "-P rna_turner1999.par "
+        param_file = "-P rna_turner2004.par "
 
         seq_string = "&".join(self["sequences"])
         
