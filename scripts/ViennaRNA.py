@@ -13,7 +13,7 @@ class ViennaRNA(dict):
 
     debug_mode = 0
     RT = 0.61597 #gas constant times 310 Kelvin (in units of kcal/mol)
-    param_file = "-P rna_turner1999.par "
+    param_file = "-P rna_turner2004.par "
 
 
     def __init__(self,Sequence_List,material = "rna37"):

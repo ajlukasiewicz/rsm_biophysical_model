@@ -50,8 +50,8 @@ RsmA_MD_freeEnergyMatrix =  [ {'A' : -2.48, 'T' : -1.07, 'C' : -0.87, 'G' : 0}, 
                             {'A' : -3.32, 'T' : 0, 'C' : -0.84, 'G' : -1.60}, #5th nucleotide position
                         ]
 
-RsmA_ddG_PWM =  [ {'A' : -3.20, 'T' : 0, 'C' : -0.4, 'G' : -0.79}, #1st nucleotide position
-                            {'A' : -0.04, 'T' : -0.06, 'C' : 0, 'G' : -0.07}, #2nd nucleotide position
+RsmA_ddG_PWM =  [ {'A' : -3.20, 'T' : 0, 'C' : -0.44, 'G' : -0.79}, #1st nucleotide position
+                            {'A' : -0.04, 'T' : -0.26, 'C' : 0, 'G' : -0.07}, #2nd nucleotide position
                             {'G' : -5.56, 'T' : -0.14, 'C' : 0, 'A' : -3.54}, #3rd nucleotide position
                             {'G' : -8.28, 'T' : 0, 'C' : -0.87, 'A' : -2.86}, #4th nucleotide position
                             {'A' : -3.42, 'T' : 0, 'C' : -0.12, 'G' : -3.08}, #5th nucleotide position
