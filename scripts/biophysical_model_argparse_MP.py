@@ -10,6 +10,10 @@ from RBS_Calculator import *
 from ViennaRNA import *
 import multiprocessing as mp
 
+#set ostir fork in system path 
+sys.path.insert(0, '/Users/alexlukasiewicz/Documents/ostir')
+from ostir.ostir_factory import *
+
 RNAEnergyModel = ViennaRNA
 
 beta = 0.45
@@ -39,6 +43,20 @@ CsrA_MDgen_freeEnergyMatrix = [ {'A' : -2.5, 'T' : 0, 'C' : -0.42, 'G' : -0.57},
                         ]
 
 RsmA_MD_freeEnergyMatrix =  [ {'A' : -2.48, 'T' : -1.07, 'C' : -0.87, 'G' : 0}, #1st nucleotide position
+                            {'A' : -3.46, 'T' : -2.26, 'C' : -1.15, 'G' : 0}, #2nd nucleotide position
+                            {'G' : -5.63, 'T' : 0, 'C' : -0.31, 'A' : -1.29}, #3rd nucleotide position
+                            {'G' : -5.81, 'T' : 0, 'C' : -0.95, 'A' : -1.96}, #4th nucleotide position
+                            {'A' : -3.32, 'T' : 0, 'C' : -0.84, 'G' : -1.60}, #5th nucleotide position
+                        ]
+
+RsmA_ddG_PWM =  [ {'A' : -3.20, 'T' : 0, 'C' : -0.44, 'G' : -0.79}, #1st nucleotide position
+                            {'A' : -0.04, 'T' : -0.26, 'C' : 0, 'G' : -0.07}, #2nd nucleotide position
+                            {'G' : -5.56, 'T' : -0.14, 'C' : 0, 'A' : -3.54}, #3rd nucleotide position
+                            {'G' : -8.28, 'T' : 0, 'C' : -0.87, 'A' : -2.86}, #4th nucleotide position
+                            {'A' : -3.42, 'T' : 0, 'C' : -0.12, 'G' : -3.08}, #5th nucleotide position
+                        ]
+
+RsmF_ddG_PWM =  [ {'A' : -2.48, 'T' : -1.07, 'C' : -0.87, 'G' : 0}, #1st nucleotide position
                             {'A' : -3.46, 'T' : -2.26, 'C' : -1.15, 'G' : 0}, #2nd nucleotide position
                             {'G' : -5.63, 'T' : 0, 'C' : -0.31, 'A' : -1.29}, #3rd nucleotide position
                             {'G' : -5.81, 'T' : 0, 'C' : -0.95, 'A' : -1.96}, #4th nucleotide position
@@ -326,15 +344,16 @@ def predictTranslationRatesSingleSites(inputList):
     #print "single site foldingConstraint: ", foldingConstraint
     outputList = []
     for start in start_codon_list:
-        calc = RBS_Calculator(sequence, start_range = [start-1, start], rRNA = 'ACCTCCTTA', constraints = foldingConstraint, verbose = False)
+        calc = OSTIRFactory(sequence, [start-1, start], rRNA = 'ACCTCCTTA', constraints = foldingConstraint, verbose = False)
         calc.calc_dG()
-        #outputData = calc.output()
-        #RBS = calc.RBS_list[0]        
-        start_pos = calc.start_pos_list[0]
-        most_5p_SD_nt_pos = calc.most_5p_mRNA_list[0] #RBS.most_5p_paired_SD_mRNA
-        #start_pos = RBS.start_position
+        output_data_list = [result.results() for result in calc.results]
+        additional_output_data_list = [result.addional_results() for result in calc.results]
+        start_pos = output_data_list[0]['start_position']
+        dG_RBS = output_data_list[0]['dG_total']
+        print(dG_RBS, dG_total)
+        most_5p_SD_nt_pos = additional_output_data_list[0]['most_5p_mRNA']
         footprint_pos = start_pos + 15
-        tir_OFF = calc.Expression_list[0]
+        tir_OFF = output_data_list[0]['expression']
         
         if CsrA_begin_pos >= most_5p_SD_nt_pos and (CsrA_begin_pos + siteLen) <= footprint_pos:
             CsrA_steric_repression = math.exp(-beta * dG_protein)
@@ -368,17 +387,19 @@ def predictTranslationRatesDoubleSites(inputList):
     #print "double site foldingConstraint: ", foldingConstraint
         
     outputList = []
-    for start in start_codon_list:
-        calc = RBS_Calculator(sequence, start_range = [start-1, start], rRNA = 'ACCTCCTTA', constraints = foldingConstraint, verbose = False)
-        calc.calc_dG()
 
+    for start in start_codon_list:
+        calc = OSTIRFactory(sequence, [start-1, start], rRNA = 'ACCTCCTTA', constraints = foldingConstraint, verbose = False)
+        calc.calc_dG()
+        output_data_list = [result.results() for result in calc.results]
+        additional_output_data_list = [result.addional_results() for result in calc.results]
+        tir_OFF = output_data_list[0]['expression']
         #outputData = calc.output()
         #RBS = calc.RBS_list[0]        
-        start_pos = calc.start_pos_list[0]
-        most_5p_SD_nt_pos = calc.most_5p_mRNA_list[0] #RBS.most_5p_paired_SD_mRNA
-        #start_pos = RBS.start_position
+        start_pos = output_data_list[0]['start_position']
+        most_5p_SD_nt_pos = additional_output_data_list[0]['most_5p_mRNA']
         footprint_pos = start_pos + 15
-        tir_OFF = calc.Expression_list[0]
+        
         
         if CsrA_site1_begin_pos >= most_5p_SD_nt_pos and (CsrA_site2_begin_pos + siteLen) <= footprint_pos:
             CsrA_steric_repression = math.exp( -beta * (dG1 + dG2 + dG_dimerization) )
@@ -405,16 +426,13 @@ def predictTranslationRates(sequence, start_codon_list, singleSites, doubleSites
     
     #Calculate mRNA translation rates in the absence of CsrA binding
     TranslationRates_free = []
+
     for start in start_codon_list:
-        calc = RBS_Calculator(sequence, start_range = [start-1, start], rRNA = 'ACCTCCTTA', constraints = None, verbose = False)
-        calc.calc_dG()      
-        RBS = calc.start_pos_list[0]
-        #most_5p_SD_nt_pos = calc.aligned_most_5p_SDmost_5p_mRNA_list[0] #RBS.most_5p_paired_SD_mRNA
-        #start_pos = RBS.start_position
-        #footprint_pos = start_pos + 15
-        tir = calc.Expression_list[0]
+        calc = OSTIRFactory(sequence, [start-1, start], rRNA = 'ACCTCCTTA', constraints = None, verbose = False)
+        calc.calc_dG() 
+        output_data_list = [result.results() for result in calc.results]
+        tir = output_data_list[0]['expression']
         TranslationRates_free.append( (tir, 1.0) )
-        #print "TIR %s at pos %s" % (str(round(RBS.tir,2)), str(pos))
     
     inputList = [ [sequence, start_codon_list] + list(inputs) for inputs in singleSites][0:15]
     print("Number of Single Site translation rate predictions: ", len(inputList))
@@ -722,15 +740,17 @@ if __name__ == "__main__":
 
     options = parser.parse_args()
 
+    #assign pwm options
     if options.pwm == "CsrA":
         energy_matrix = CsrA_freeEnergyMatrix
     if options.pwm == "CsrA_MD":
         energy_matrix = CsrA_MDgen_freeEnergyMatrix
     if options.pwm == "RsmA_MD":
         energy_matrix = RsmA_MD_freeEnergyMatrix
+    if options.pwm == "RsmA_ddG":
+        energy_matrix = RsmA_ddG_PWM
 
     #import excel file 
-
     filename = options.i 
 
     outputFilename = '../data/' + options.o + ".xls"
