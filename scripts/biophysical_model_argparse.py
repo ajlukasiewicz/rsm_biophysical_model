@@ -24,6 +24,7 @@ beta = 0.45
 #ALL FREE ENERGIES IN UNITS OF RT / kT
 
 #binding (AAGGA) = -2.63 + -2.2 + -3.14 + -3.14 + -1.65 in units of RT
+
 CsrA_freeEnergyMatrix = [   {'A' : -2.63, 'T' : 0, 'C' : 0, 'G' : 0}, #1st nucleotide position
                             {'A' : -2.20, 'T' : 0, 'C' : 0, 'G' : 0}, #2nd nucleotide position
                             {'G' : -3.14, 'T' : 0, 'C' : 0, 'A' : 0}, #3rd nucleotide position
@@ -45,11 +46,11 @@ RsmA_MD_freeEnergyMatrix =  [ {'A' : -2.48, 'T' : -1.07, 'C' : -0.87, 'G' : 0}, 
                             {'A' : -3.32, 'T' : 0, 'C' : -0.84, 'G' : -1.60}, #5th nucleotide position
                         ]
 
-RsmA_ddG_PWM =  [ {'A' : -3.20, 'T' : 0, 'C' : -0.44, 'G' : -0.79}, #1st nucleotide position
-                            {'A' : -0.04, 'T' : -0.26, 'C' : 0, 'G' : -0.07}, #2nd nucleotide position
-                            {'G' : -5.56, 'T' : -0.14, 'C' : 0, 'A' : -3.54}, #3rd nucleotide position
-                            {'G' : -8.28, 'T' : 0, 'C' : -0.87, 'A' : -2.86}, #4th nucleotide position
-                            {'A' : -3.42, 'T' : 0, 'C' : -0.12, 'G' : -3.08}, #5th nucleotide position
+RsmA_ddG_PWM =  [ {'A' : -1.97, 'T' : 0, 'C' : -0.27, 'G' : -0.49}, #1st nucleotide position
+                            {'A' : -0.02, 'T' : -0.16, 'C' : 0, 'G' : -0.04}, #2nd nucleotide position
+                            {'G' : -3.42, 'T' : -0.09, 'C' : 0, 'A' : -2.18}, #3rd nucleotide position
+                            {'G' : -5.10, 'T' : 0, 'C' : -0.54, 'A' : -1.76}, #4th nucleotide position
+                            {'A' : -2.11, 'T' : 0, 'C' : -0.08, 'G' : -1.90}, #5th nucleotide position
                         ]
 
 RsmF_ddG_PWM =  [ {'A' : -2.48, 'T' : -1.07, 'C' : -0.87, 'G' : 0}, #1st nucleotide position
@@ -742,6 +743,8 @@ if __name__ == "__main__":
         energy_matrix = RsmA_MD_freeEnergyMatrix
     if options.pwm == "RsmA_ddG":
         energy_matrix = RsmA_ddG_PWM
+    if options.pwm == "RsmA_kCal":
+        energy_matrix = RsmA_ddG_kCal
 
     #import excel file 
 
