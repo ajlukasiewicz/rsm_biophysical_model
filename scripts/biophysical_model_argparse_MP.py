@@ -16,7 +16,10 @@ from ostir.ostir_factory import *
 
 RNAEnergyModel = ViennaRNA
 
-beta = 0.45
+#beta = 0.45
+
+#from ostir RBS calculator
+beta =  0.40002512
 
 #Calculate the CsrA-RNA free energy interactions on arbitrary RNA sequences
 #Identify CsrA binding sites
@@ -49,11 +52,11 @@ RsmA_MD_freeEnergyMatrix =  [ {'A' : -2.48, 'T' : -1.07, 'C' : -0.87, 'G' : 0}, 
                             {'A' : -3.32, 'T' : 0, 'C' : -0.84, 'G' : -1.60}, #5th nucleotide position
                         ]
 
-RsmA_ddG_PWM =  [ {'A' : -3.20, 'T' : 0, 'C' : -0.44, 'G' : -0.79}, #1st nucleotide position
-                            {'A' : -0.04, 'T' : -0.26, 'C' : 0, 'G' : -0.07}, #2nd nucleotide position
-                            {'G' : -5.56, 'T' : -0.14, 'C' : 0, 'A' : -3.54}, #3rd nucleotide position
-                            {'G' : -8.28, 'T' : 0, 'C' : -0.87, 'A' : -2.86}, #4th nucleotide position
-                            {'A' : -3.42, 'T' : 0, 'C' : -0.12, 'G' : -3.08}, #5th nucleotide position
+RsmA_ddG_PWM =  [ {'A' : -1.97, 'T' : 0, 'C' : -0.27, 'G' : -0.49}, #1st nucleotide position
+                            {'A' : -0.02, 'T' : -0.16, 'C' : 0, 'G' : -0.04}, #2nd nucleotide position
+                            {'G' : -3.42, 'T' : -0.09, 'C' : 0, 'A' : -2.18}, #3rd nucleotide position
+                            {'G' : -5.10, 'T' : 0, 'C' : -0.54, 'A' : -1.76}, #4th nucleotide position
+                            {'A' : -2.11, 'T' : 0, 'C' : -0.08, 'G' : -1.90}, #5th nucleotide position
                         ]
 
 RsmF_ddG_PWM =  [ {'A' : -2.48, 'T' : -1.07, 'C' : -0.87, 'G' : 0}, #1st nucleotide position
@@ -821,7 +824,7 @@ if __name__ == "__main__":
                     print("Starting RBS Calculator")
                     start_codon_list = startCodonDict[gene]
                     print(start_codon_list)
-                    (sequence, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites) = predictTranslationRates(sequence, start_codon_list, sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding)
+                    (sequence, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites) = predictTranslationRates(sequence, start_codon_list, sortedSingleBindingSiteList_RNAFolding[0:15], sortedDoubleBindingSiteList_RNAFolding[0:15])
                     calculationsDict['translation'][gene] = (sequence, start_codon_list, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites)
                     print(calculationsDict)
                 
