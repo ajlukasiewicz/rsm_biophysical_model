@@ -58,14 +58,6 @@ RsmA_ddG_PWM =  [ {'A' : -1.97, 'T' : 0, 'C' : -0.27, 'G' : -0.49}, #1st nucleot
                             {'A' : -2.11, 'T' : 0, 'C' : -0.08, 'G' : -1.90}, #5th nucleotide position
                         ]
 
-RsmA_ddG_kCal =  [ {'A' : -1.97, 'T' : 0, 'C' : -0.27, 'G' : -0.49}, #1st nucleotide position
-                            {'A' : -0.02, 'T' : -0.16, 'C' : 0, 'G' : -0.04}, #2nd nucleotide position
-                            {'G' : -3.42, 'T' : -0.09, 'C' : 0, 'A' : -2.18}, #3rd nucleotide position
-                            {'G' : -5.10, 'T' : 0, 'C' : -0.54, 'A' : -1.76}, #4th nucleotide position
-                            {'A' : -2.11, 'T' : 0, 'C' : -0.08, 'G' : -1.90}, #5th nucleotide position
-                        ]
-
-
 RsmF_ddG_PWM =  [ {'A' : -2.48, 'T' : -1.07, 'C' : -0.87, 'G' : 0}, #1st nucleotide position
                             {'A' : -3.46, 'T' : -2.26, 'C' : -1.15, 'G' : 0}, #2nd nucleotide position
                             {'G' : -5.63, 'T' : 0, 'C' : -0.31, 'A' : -1.29}, #3rd nucleotide position
@@ -827,7 +819,7 @@ if __name__ == "__main__":
                 print("Harvesting OSTIRs")
                 start_codon_list = startCodonDict[gene]
                 #print(start_codon_list)
-                (sequence, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites) = predictTranslationRates(sequence, start_codon_list, sortedSingleBindingSiteList_RNAFolding[0:14], sortedDoubleBindingSiteList_RNAFolding[0:14])
+                (sequence, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites) = predictTranslationRates(sequence, start_codon_list, sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding)
                 calculationsDict['translation'][gene] = (sequence, start_codon_list, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites)
                 #print(calculationsDict)
             
