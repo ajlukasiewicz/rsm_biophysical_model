@@ -6,13 +6,18 @@ import argparse
 import itertools
 #import RNA
 import pandas as pd
-from RBS_Calculator import *
+#from RBS_Calculator import *
 #from RBS_Calculator_Vienna import *
 from ViennaRNA import *
 
+#set ostir fork in system path 
+sys.path.insert(0, '/Users/alexlukasiewicz/Documents/ostir')
+from ostir.ostir_factory import *
+
 RNAEnergyModel = ViennaRNA
 
-beta = 0.45
+#from ostir 
+beta =  0.40002512
 
 #Calculate the CsrA-RNA free energy interactions on arbitrary RNA sequences
 #Identify CsrA binding sites
@@ -251,8 +256,8 @@ def calculateDoubleBindingSite(inputList):
     #pre_cutoff -- site1 -- spacer -- site 2 -- post_cutoff
     doubleBindingConstraint = cutoffs[0] * "." + siteFoldingConstraint + dist * "." + siteFoldingConstraint + cutoffs[1] * "."  #cheap workaround here 
     foldingConstraint = doubleBindingConstraint[0:len(subSequence)]
-    print(foldingConstraint)
-    print(subSequence)
+    #print(foldingConstraint)
+    #print(subSequence)
     
     print("Calculating RNA structures in free & bound states for double CsrA binding sites")
     
@@ -331,7 +336,7 @@ def predictTranslationRatesSingleSites(inputList):
     RNA_ref = inputList[6]
     RNA_bound = inputList[7]
     cutoffs = inputList[8]
-    print(sequence, start_codon_list, CsrA_begin_pos, dG_total, dG_protein, ddG_RNA, RNA_ref, RNA_bound, cutoffs)
+    #print(sequence, start_codon_list, CsrA_begin_pos, dG_total, dG_protein, ddG_RNA, RNA_ref, RNA_bound, cutoffs)
     #(sequence, start_codon_list, CsrA_begin_pos, dG_total, dG_protein, ddG_RNA, RNA_ref, RNA_bound, cutoffs) = inputs
     foldingConstraint = RNA_bound['foldingConstraint']
     siteLen = len(CsrA_siteFoldingConstraint)
@@ -339,15 +344,16 @@ def predictTranslationRatesSingleSites(inputList):
     #print "single site foldingConstraint: ", foldingConstraint
     outputList = []
     for start in start_codon_list:
-        calc = RBS_Calculator(sequence, start_range = [start-1, start], rRNA = 'ACCTCCTTA', constraints = foldingConstraint, verbose = False)
+        calc = OSTIRFactory(sequence, [start-1, start], rRNA = 'ACCTCCTTA', constraints = foldingConstraint, verbose = False)
         calc.calc_dG()
-        #outputData = calc.output()
-        #RBS = calc.RBS_list[0]        
-        start_pos = calc.start_pos_list[0]
-        most_5p_SD_nt_pos = calc.most_5p_mRNA_list[0] #RBS.most_5p_paired_SD_mRNA
-        #start_pos = RBS.start_position
+        output_data_list = [result.results() for result in calc.results]
+        additional_output_data_list = [result.addional_results() for result in calc.results]
+        start_pos = output_data_list[0]['start_position']
+        dG_RBS = output_data_list[0]['dG_total']
+        #print(dG_RBS, dG_total)
+        most_5p_SD_nt_pos = additional_output_data_list[0]['most_5p_mRNA']
         footprint_pos = start_pos + 15
-        tir_OFF = calc.Expression_list[0]
+        tir_OFF = output_data_list[0]['expression']
         
         if CsrA_begin_pos >= most_5p_SD_nt_pos and (CsrA_begin_pos + siteLen) <= footprint_pos:
             CsrA_steric_repression = math.exp(-beta * dG_protein)
@@ -382,16 +388,17 @@ def predictTranslationRatesDoubleSites(inputList):
         
     outputList = []
     for start in start_codon_list:
-        calc = RBS_Calculator(sequence, start_range = [start-1, start], rRNA = 'ACCTCCTTA', constraints = foldingConstraint, verbose = False)
+        calc = OSTIRFactory(sequence, [start-1, start], rRNA = 'ACCTCCTTA', constraints = foldingConstraint, verbose = False)
         calc.calc_dG()
-
+        output_data_list = [result.results() for result in calc.results]
+        additional_output_data_list = [result.addional_results() for result in calc.results]
+        tir_OFF = output_data_list[0]['expression']
+        #print(tir_OFF)
         #outputData = calc.output()
         #RBS = calc.RBS_list[0]        
-        start_pos = calc.start_pos_list[0]
-        most_5p_SD_nt_pos = calc.most_5p_mRNA_list[0] #RBS.most_5p_paired_SD_mRNA
-        #start_pos = RBS.start_position
+        start_pos = output_data_list[0]['start_position']
+        most_5p_SD_nt_pos = additional_output_data_list[0]['most_5p_mRNA']
         footprint_pos = start_pos + 15
-        tir_OFF = calc.Expression_list[0]
         
         if CsrA_site1_begin_pos >= most_5p_SD_nt_pos and (CsrA_site2_begin_pos + siteLen) <= footprint_pos:
             CsrA_steric_repression = math.exp( -beta * (dG1 + dG2 + dG_dimerization) )
@@ -419,15 +426,11 @@ def predictTranslationRates(sequence, start_codon_list, singleSites, doubleSites
     #Calculate mRNA translation rates in the absence of CsrA binding
     TranslationRates_free = []
     for start in start_codon_list:
-        calc = RBS_Calculator(sequence, start_range = [start-1, start], rRNA = 'ACCTCCTTA', constraints = None, verbose = False)
-        calc.calc_dG()      
-        RBS = calc.start_pos_list[0]
-        #most_5p_SD_nt_pos = calc.aligned_most_5p_SDmost_5p_mRNA_list[0] #RBS.most_5p_paired_SD_mRNA
-        #start_pos = RBS.start_position
-        #footprint_pos = start_pos + 15
-        tir = calc.Expression_list[0]
+        calc = OSTIRFactory(sequence, [start-1, start], rRNA = 'ACCTCCTTA', constraints = None, verbose = False)
+        calc.calc_dG() 
+        output_data_list = [result.results() for result in calc.results]
+        tir = output_data_list[0]['expression']
         TranslationRates_free.append( (tir, 1.0) )
-        #print "TIR %s at pos %s" % (str(round(RBS.tir,2)), str(pos))
     
     inputList = [ [sequence, start_codon_list] + list(inputs) for inputs in singleSites][0:15]
     print("Number of Single Site translation rate predictions: ", len(inputList))
@@ -801,19 +804,19 @@ if __name__ == "__main__":
             print("TOP 5: ", sortedSingleBindingSiteList[0:5])
             print("%s DOUBLE BINDING SITES (CsrA only)" % len(sortedDoubleBindingSiteList))
             print("TOP 5: ", sortedDoubleBindingSiteList[0:5])
-            (sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding) = calculateFoldingFreeEnergies(use_MPI, sequence, CsrA_siteFoldingConstraint, sortedSingleBindingSiteList, sortedDoubleBindingSiteList) 
+            (sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding) = calculateFoldingFreeEnergies(use_MPI, sequence, CsrA_siteFoldingConstraint, sortedSingleBindingSiteList[0:5], sortedDoubleBindingSiteList[0:5]) 
             print("TOP 5: SINGLE BINDING SITES (CsrA + RNA shape change)")
             print([(begin_pos, dG_total, ddG_RNA, RNA_bound['structure']) for (begin_pos, dG_total, dG_protein, ddG_RNA, RNA_ref, RNA_bound, cutoffs) in sortedSingleBindingSiteList_RNAFolding[0:5]])
             print("TOP 5: DOUBLE BINDING SITES (CsrA + RNA shape change)")
             print([(pos1, pos2, dG_total, dG1, dG2, dG_dimerization, ddG_RNA, RNA_bound['structure']) for (pos1, pos2, dG_total, dG1, dG2, dG_dimerization, ddG_RNA, RNA_ref, RNA_bound, cutoffs) in sortedDoubleBindingSiteList_RNAFolding[0:5]])
             print(80 * "*")
             calculationsDict['sites'][gene] = (sequence, sortedSingleBindingSiteList_RNAFolding[0:15], sortedDoubleBindingSiteList_RNAFolding[0:15])
-            print(calculationsDict)
+            #print(calculationsDict)
             print('single binding site list ' + str(sortedSingleBindingSiteList_RNAFolding))
             print('double binding site list ' + str(sortedDoubleBindingSiteList_RNAFolding))
 
             if options.trans == "y":
-                print("Starting RBS Calculator")
+                print("Harvesting OSTIRs")
                 start_codon_list = startCodonDict[gene]
                 #print(start_codon_list)
                 (sequence, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites) = predictTranslationRates(sequence, start_codon_list, sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding)
