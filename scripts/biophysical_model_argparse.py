@@ -17,7 +17,7 @@ from ostir.ostir_factory import *
 RNAEnergyModel = ViennaRNA
 
 #from ostir 
-beta = 0.45
+beta =  0.40002512
 
 #Calculate the CsrA-RNA free energy interactions on arbitrary RNA sequences
 #Identify CsrA binding sites
@@ -827,7 +827,7 @@ if __name__ == "__main__":
                 print("Harvesting OSTIRs")
                 start_codon_list = startCodonDict[gene]
                 #print(start_codon_list)
-                (sequence, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites) = predictTranslationRates(sequence, start_codon_list, sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding)
+                (sequence, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites) = predictTranslationRates(sequence, start_codon_list, sortedSingleBindingSiteList_RNAFolding[0:14], sortedDoubleBindingSiteList_RNAFolding[0:14])
                 calculationsDict['translation'][gene] = (sequence, start_codon_list, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites)
                 #print(calculationsDict)
             
