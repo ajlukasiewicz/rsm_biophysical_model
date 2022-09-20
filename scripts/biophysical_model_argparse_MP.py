@@ -6,7 +6,7 @@ import argparse
 import itertools
 #import RNA
 import pandas as pd
-from RBS_Calculator import *
+#from RBS_Calculator import *
 from ViennaRNA import *
 import multiprocessing as mp
 
@@ -315,10 +315,10 @@ def inputSequencesFromExcel(fileName, sheetName):
     for sheet in sheets:
         if sheet.name == sheetName:
         
-            for row in range(sheet.nrows):
-                gene_name = sheet.cell(row, 0).value
-                sequence = sheet.cell(row, 1).value
-                start_codons = sheet.cell(row, 2).value
+            for row in range(1,sheet.nrows):
+                gene_name = sheet.cell(row, 1).value
+                sequence = sheet.cell(row, 2).value
+                start_codons = sheet.cell(row, 3).value
                 
                 if start_codons is str:
                     start_codon_list = [int(x) for x in start_codons.split(" ")]
@@ -357,6 +357,7 @@ def predictTranslationRatesSingleSites(inputList):
         most_5p_SD_nt_pos = additional_output_data_list[0]['most_5p_mRNA']
         footprint_pos = start_pos + 15
         tir_OFF = output_data_list[0]['expression']
+        print(tir_OFF)
         
         if CsrA_begin_pos >= most_5p_SD_nt_pos and (CsrA_begin_pos + siteLen) <= footprint_pos:
             CsrA_steric_repression = math.exp(-beta * dG_protein)
@@ -367,7 +368,7 @@ def predictTranslationRatesSingleSites(inputList):
         
         print("Pos %s: TIR changed to %s (steric repression was %s)" % (str(start_pos), str(round(tir_ON,2)), str(round(CsrA_steric_repression,2))))
         
-        outputList.append((start_pos, tir_ON, tir_OFF / tir_ON))
+        outputList.append((start_pos, tir_ON))
     return outputList
         
 def predictTranslationRatesDoubleSites(inputList):
@@ -402,8 +403,7 @@ def predictTranslationRatesDoubleSites(inputList):
         start_pos = output_data_list[0]['start_position']
         most_5p_SD_nt_pos = additional_output_data_list[0]['most_5p_mRNA']
         footprint_pos = start_pos + 15
-        
-        
+         
         if CsrA_site1_begin_pos >= most_5p_SD_nt_pos and (CsrA_site2_begin_pos + siteLen) <= footprint_pos:
             CsrA_steric_repression = math.exp( -beta * (dG1 + dG2 + dG_dimerization) )
             tir_ON = tir_OFF / CsrA_steric_repression
@@ -418,7 +418,7 @@ def predictTranslationRatesDoubleSites(inputList):
             CsrA_steric_repression = 1.0
         
         print("Pos %s: TIR changed to %s (steric repression was %s)" % (str(start_pos), str(round(tir_ON,2)), str(round(CsrA_steric_repression,2))))
-        outputList.append( (start_pos, tir_ON, tir_OFF / tir_ON) )
+        outputList.append( (start_pos, tir_ON) )
     return outputList
 
 def predictTranslationRates(sequence, start_codon_list, singleSites, doubleSites):
@@ -642,7 +642,7 @@ def split_merge_binding_dict(gene,dictionary,binding_sites):
         ddG_mRNA = []
         struct_dict = []
         gene_name = []
-        for i in range(14): #takes top 15 conformations, change to len(dictionary) to capture full number of predictions
+        for i in range(len(dictionary)): #takes top 15 conformations, change to len(dictionary) to capture full number of predictions
             site.append(dictionary[i][0])
             dG_total_ss.append(dictionary[i][1])
             dG_bs1_ss.append(dictionary[i][2])
@@ -814,7 +814,7 @@ if __name__ == "__main__":
                 print([(begin_pos, dG_total, ddG_RNA, RNA_bound['structure']) for (begin_pos, dG_total, dG_protein, ddG_RNA, RNA_ref, RNA_bound, cutoffs) in sortedSingleBindingSiteList_RNAFolding[0:5]])
                 print("TOP 5: DOUBLE BINDING SITES (CsrA + RNA shape change)")
                 print([(pos1, pos2, dG_total, dG1, dG2, dG_dimerization, ddG_RNA, RNA_bound['structure']) for (pos1, pos2, dG_total, dG1, dG2, dG_dimerization, ddG_RNA, RNA_ref, RNA_bound, cutoffs) in sortedDoubleBindingSiteList_RNAFolding[0:5]])
-                print(80 * "*")
+                print(80 * "")
                 calculationsDict['sites'][gene] = (sequence, sortedSingleBindingSiteList_RNAFolding[0:15], sortedDoubleBindingSiteList_RNAFolding[0:15])
                 print(calculationsDict)
                 print('single binding site list ' + str(sortedSingleBindingSiteList_RNAFolding))
