@@ -61,7 +61,7 @@ class ViennaRNA(dict):
         #Set arguments
         material = self["material"]
 
-        param_file = "-P rna_turner1999.par "
+        param_file = "-P rna_turner2004.par "
 
         if dangles is "none":
             dangles = " -d0 "
