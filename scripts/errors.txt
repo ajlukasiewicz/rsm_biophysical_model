@@ -1,0 +1,19 @@
+********************************************************************************
+    .----.   @   @ biophysical
+   / .-"-.`.  \ /             
+  | | ''\ \ \_/ )       model 
+ ,-\ `-.' /.'  /              
+ ---`----'----'        AL,2020
+********************************************************************************
+Number of nodes is 2
+Number of sequences: 3
+gene PA14_11550 calculations started
+gene PA14_10340 calculations started
+Harvesting OSTIRs for PA14_11550
+gene PA14_11550 complete
+Harvesting OSTIRs for PA14_10340
+gene PA14_10340 complete
+Harvesting OSTIRs for PA14_10350
+gene PA14_10350 complete
+gene PA14_10350 calculations started
+completed in : 1.4647438526153564
