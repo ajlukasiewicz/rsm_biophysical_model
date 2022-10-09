@@ -11,10 +11,12 @@ import pandas as pd
 #from RBS_Calculator import *
 from ViennaRNA import *
 import multiprocessing as mp
+from concurrent.futures import ThreadPoolExecutor
 
-#set ostir fork in system path 
-sys.path.insert(0, '/Users/alexlukasiewicz/Documents/ostir')
-from ostir.ostir_factory import *
+
+#set ostir fork in system path                                                                                                                                                                         
+sys.path.insert(0, '/scratch/04895/ajl3326/ostir_biophysical_model/scripts/ostir')
+from ostir_factory import *
 
 RNAEnergyModel = ViennaRNA
 
@@ -284,20 +286,28 @@ def calculateFoldingFreeEnergies(use_MP, sequence, siteFoldingConstraint, sorted
     singleBindingSiteList_RNAFolding = []       #list of tuples, (begin pos1, dG_total, dG1, ddG_RNA)                                                                                                    
     inputList = [[sequence, siteFoldingConstraint, site] for site in sortedSingleBindingSiteList]
     if use_MP:
-        pool = mp.Pool(processes= len(inputList))
-        singleBindingSiteList_RNAFolding = pool.map(calculateSingleBindingSite, inputList)
-        pool.close()
-        pool.join()
+        singleBindingSiteList_RNAFolding = []
+        with ThreadPoolExecutor() as executor:
+            for result in executor.map(calculateSingleBindingSite, inputList):
+                singleBindingSiteList_RNAFolding.append(result)
+        #pool = mp.get_context('spawn').Pool(processes= physicalCores)
+        #singleBindingSiteList_RNAFolding = pool.map(calculateSingleBindingSite, inputList)
+        #pool.close()
+        #pool.join()
     else:
         singleBindingSiteList_RNAFolding = map(calculateSingleBindingSite, inputList)
 
     doubleBindingSiteList_RNAFolding = []       #list of tuples, (begin pos1, begin pos2, dG_total, dG1, dG2, dG_dimerization, ddG_RNA)                                                                  
     inputList = [[sequence, siteFoldingConstraint, sitepair] for sitepair in sortedDoubleBindingSiteList]
     if use_MP:
-        pool = mp.Pool(processes = len(inputList))
-        doubleBindingSiteList_RNAFolding = pool.map(calculateDoubleBindingSite, inputList)
-        pool.close()
-        pool.join()
+        doubleBindingSiteList_RNAFolding = []
+        with ThreadPoolExecutor() as executor:
+            for result in executor.map(calculateDoubleBindingSite, inputList):
+                doubleBindingSiteList_RNAFolding.append(result)
+        #pool = mp.get_context('spawn').Pool(processes = physicalCores)
+        #doubleBindingSiteList_RNAFolding = pool.map(calculateDoubleBindingSite, inputList)
+        #pool.close()
+        #pool.join()
     else:
         doubleBindingSiteList_RNAFolding = map(calculateDoubleBindingSite, inputList)
 
@@ -440,10 +450,14 @@ def predictTranslationRates(sequence, start_codon_list, singleSites, doubleSites
     inputList = [ [sequence, start_codon_list] + list(inputs) for inputs in singleSites][0:15]
     #print("Number of Single Site translation rate predictions: ", len(inputList))
     if use_MP:
-        pool = mp.Pool(processes=len(inputList))
-        translationRatesSingleSites = pool.map(predictTranslationRatesSingleSites, inputList)
-        pool.close()
-        pool.join()
+        translationRatesSingleSites = []
+        with ThreadPoolExecutor() as executor:
+            for result in executor.map(predictTranslationRatesSingleSites, inputList):
+                translationRatesSingleSites.append(result)
+        #pool = mp.get_context('spawn').Pool(processes=physicalCores)
+        #translationRatesSingleSites = pool.map(predictTranslationRatesSingleSites, inputList)
+        #pool.close()
+        #pool.join()
     else:
         translationRatesSingleSites = map(predictTranslationRatesSingleSites, inputList) #list of lists
         translationRatesSingleSites = list(translationRatesSingleSites)
@@ -451,10 +465,14 @@ def predictTranslationRates(sequence, start_codon_list, singleSites, doubleSites
     inputList = [ [sequence, start_codon_list] + list(inputs) for inputs in doubleSites][0:15]
     #print("Number of Double Site translation rate predictions: ", len(inputList))
     if use_MP:
-        pool = mp.Pool(processes= len(inputList))
-        translationRatesDoubleSites = pool.map(predictTranslationRatesDoubleSites, inputList) 
-        pool.close()
-        pool.join()
+        translationRatesDoubleSites = []
+        with ThreadPoolExecutor() as executor:
+            for result in executor.map(predictTranslationRatesDoubleSites, inputList):
+                translationRatesDoubleSites.append(result)
+        #pool = mp.get_context('spawn').Pool(processes= physicalCores)
+        #translationRatesDoubleSites = pool.map(predictTranslationRatesDoubleSites, inputList) 
+        #pool.close()
+        #pool.join()
     else:
         translationRatesDoubleSites = map(predictTranslationRatesDoubleSites, inputList) #list of lists
         translationRatesDoubleSites = list(translationRatesDoubleSites)
@@ -713,8 +731,7 @@ def run_biophysical_model(inputList,binding_sites,translation_rates):
             print("Harvesting OSTIRs for " + str(gene))
             translation_rates[gene] = (sequence, startcodon, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites)
         print("gene " + str(gene) + " complete")
-        
-
+    
     except:
         print("ERROR. Skipping %s gene." % gene)
         print (traceback.format_exc())
@@ -826,16 +843,16 @@ if __name__ == "__main__":
 
     if (use_MP):
         seq_args = []
-        use_MP = False #just to force spawning a single pool to calc each gene
+        #use_MP = False #just to force spawning a single pool to calc each gene
         for gene,sequence in sequenceDict.items():
             seq_args.append([gene,sequence.upper(),options.trans,startCodonDict[gene]])
         print("Number of sequences: %s"  % len(sequenceDict.keys()))
+        print(seq_args)
         
         #set shared variable 
         manager = mp.Manager()
         binding_sites = manager.dict()
         translation_rates = manager.dict()
-
         #assign processes using mp.Process:
         tt = time.time()
         jobs = []
@@ -844,11 +861,12 @@ if __name__ == "__main__":
             
         for i in range(len(seq_args)):
             jobs[i].start()
-            print("gene " + str(seq_args[i][0]) + " calculations started")
 
         for i in range(len(seq_args)):
             jobs[i].join()
-        
+    
+        print(type(binding_sites))    
+    
     #concatenate all dictionaries from pool processses using defaultdict:
     #keyList = ['sites','translation']
     #calculationsDict = {}
@@ -876,7 +894,7 @@ if __name__ == "__main__":
     if options.exp == 'csv':
         all_gene_list = []
         #process binding site data 
-        for gene in binding_sites:
+        for gene in binding_sites.keys():
             #process initial weird formatting in dictionary
             sequence = binding_sites[gene][0]
             single_site_dict = binding_sites[gene][1]
@@ -894,7 +912,7 @@ if __name__ == "__main__":
         if options.trans == "y":
             #process translation rate data 
             translation_rate_list = []
-            for gene in translation_rates:
+            for gene in translation_rates.keys():
                 translation_df = pd.DataFrame()
                 gene_name = []
                 for n in range(len(translation_rates[gene][4])):
