@@ -1,9 +1,6 @@
 ## RsmA biophysical model 
 Code to accompany "Thermodynamic Modeling of RsmA - mRNA Interactions Capture Novel Direct Binding Across the *Pseudomonas aeruginosa* Transcriptome" 
 
-## Requirements
-These scripts were written and executed in Python 3.7 
-
 ## Organization 
 Scripts for executing and analyzing model data are provided in [scripts](https://github.com/ajlukasiewicz/rsm_biophysical_model/tree/main/scripts) 
 
