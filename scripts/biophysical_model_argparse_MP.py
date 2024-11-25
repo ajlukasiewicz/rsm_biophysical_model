@@ -1,24 +1,16 @@
-from concurrent.futures import process
-import sys, os, math, xlwt, xlrd, random, traceback, pickle, time
-from unittest import defaultTestLoader 
-from collections import defaultdict
-#sys.path.append('../../')
-#from DNAc import *
+import sys, os, math, xlwt, xlrd, random, traceback, pickle 
 import argparse
 import itertools
-#import RNA
 import pandas as pd
-#from RBS_Calculator import *
 from ViennaRNA import *
 import multiprocessing as mp
 
 #set ostir fork in system path 
-sys.path.insert(0, '/Users/alexlukasiewicz/Documents/ostir')
-from ostir.ostir_factory import *
+sys.path.insert(0, '/Users/alex/Documents/rsm_biophysical_model/scripts/ostir') #edit with path to ostir folder
+#from ostir.ostir import ostir_factory
+from ostir import *
 
 RNAEnergyModel = ViennaRNA
-
-#beta = 0.45
 
 #from ostir RBS calculator
 beta =  0.40002512
@@ -40,32 +32,11 @@ CsrA_freeEnergyMatrix = [   {'A' : -2.63, 'T' : 0, 'C' : 0, 'G' : 0}, #1st nucle
                             {'A' : -1.65, 'T' : 0, 'C' : 0, 'G' : 0}, #5th nucleotide position
                         ]
 
-CsrA_MDgen_freeEnergyMatrix = [ {'A' : -2.5, 'T' : 0, 'C' : -0.42, 'G' : -0.57}, #1st nucleotide position
-                            {'A' : -2.34, 'T' : -0.64, 'C' : 0, 'G' : -0.75}, #2nd nucleotide position
-                            {'G' : -3.31, 'T' : 0, 'C' : -0.13, 'A' : -1.36}, #3rd nucleotide position
-                            {'G' : -2.83, 'T' : -1.26, 'C' : 0, 'A' : -0.54}, #4th nucleotide position
-                            {'A' : 0.0, 'T' : -1.64, 'C' : -1.65, 'G' : -1.78}, #5th nucleotide position
-                        ]
-
-RsmA_MD_freeEnergyMatrix =  [ {'A' : -2.48, 'T' : -1.07, 'C' : -0.87, 'G' : 0}, #1st nucleotide position
-                            {'A' : -3.46, 'T' : -2.26, 'C' : -1.15, 'G' : 0}, #2nd nucleotide position
-                            {'G' : -5.63, 'T' : 0, 'C' : -0.31, 'A' : -1.29}, #3rd nucleotide position
-                            {'G' : -5.81, 'T' : 0, 'C' : -0.95, 'A' : -1.96}, #4th nucleotide position
-                            {'A' : -3.32, 'T' : 0, 'C' : -0.84, 'G' : -1.60}, #5th nucleotide position
-                        ]
-
 RsmA_ddG_PWM =  [ {'A' : -1.97, 'T' : 0, 'C' : -0.27, 'G' : -0.49}, #1st nucleotide position
                             {'A' : -0.02, 'T' : -0.16, 'C' : 0, 'G' : -0.04}, #2nd nucleotide position
                             {'G' : -3.42, 'T' : -0.09, 'C' : 0, 'A' : -2.18}, #3rd nucleotide position
                             {'G' : -5.10, 'T' : 0, 'C' : -0.54, 'A' : -1.76}, #4th nucleotide position
                             {'A' : -2.11, 'T' : 0, 'C' : -0.08, 'G' : -1.90}, #5th nucleotide position
-                        ]
-
-RsmF_ddG_PWM =  [ {'A' : -2.48, 'T' : -1.07, 'C' : -0.87, 'G' : 0}, #1st nucleotide position
-                            {'A' : -3.46, 'T' : -2.26, 'C' : -1.15, 'G' : 0}, #2nd nucleotide position
-                            {'G' : -5.63, 'T' : 0, 'C' : -0.31, 'A' : -1.29}, #3rd nucleotide position
-                            {'G' : -5.81, 'T' : 0, 'C' : -0.95, 'A' : -1.96}, #4th nucleotide position
-                            {'A' : -3.32, 'T' : 0, 'C' : -0.84, 'G' : -1.60}, #5th nucleotide position
                         ]
 
 CsrA_siteFoldingConstraint = "xxxxx" #added additional nucleotide to see how this changes binding site predictions 
@@ -103,7 +74,9 @@ def calculateSortedBindingSitesbyEnergy(sequence, freeEnergyMatrix):
     #Return list of CsrA binding sites (pairs) and free energies
     
     siteLen = len(freeEnergyMatrix)
+    #print(siteLen)
     seqLen = len(sequence)
+    #print(seqLen)
 
     singleBindingSiteList = []   #list of tuples, (beginning position, dG)
     
@@ -206,7 +179,7 @@ def calculateSingleBindingSite(inputList):
     RNA_ref = calc_dG_mRNA(subSequence, constraints = None)
     RNA_bound = calc_dG_mRNA(subSequence, constraints = foldingConstraint)
     
-    RNA_ref['structure'] = (begin_pos - cutoffs[0]) * " " + RNA_ref['structure'] + (seqLen - begin_pos - siteLen - cutoffs[1]) * " "        #what does the * sign mean? put that many in a row?
+    RNA_ref['structure'] = (begin_pos - cutoffs[0]) * " " + RNA_ref['structure'] + (seqLen - begin_pos - siteLen - cutoffs[1]) * " "    
     RNA_bound['structure'] = (begin_pos - cutoffs[0]) * " " + RNA_bound['structure'] + (seqLen - begin_pos - siteLen - cutoffs[1]) * " "
     RNA_bound['foldingConstraint'] = (begin_pos - cutoffs[0]) * "." + foldingConstraint + (seqLen - begin_pos - siteLen - cutoffs[1]) * "."
     
@@ -226,7 +199,7 @@ def calculateSingleBindingSite(inputList):
         dG_insideLoop = 0.0 
     else:
         #when binding motif does not exist inside a loop, there is a binding penalty 
-        #dG_insideLoop = 4.0 #kcal/mol #what is the binding penalty? Total guess at this point.
+        #dG_insideLoop = 4.0 #kcal/mol
         dG_insideLoop = 0.0 #no binding penalty in this model variant 
     
     dG_ref = RNA_ref['dG']
@@ -284,20 +257,14 @@ def calculateFoldingFreeEnergies(use_MP, sequence, siteFoldingConstraint, sorted
     singleBindingSiteList_RNAFolding = []       #list of tuples, (begin pos1, dG_total, dG1, ddG_RNA)                                                                                                    
     inputList = [[sequence, siteFoldingConstraint, site] for site in sortedSingleBindingSiteList]
     if use_MP:
-        pool = mp.Pool(processes= len(inputList))
         singleBindingSiteList_RNAFolding = pool.map(calculateSingleBindingSite, inputList)
-        pool.close()
-        pool.join()
     else:
         singleBindingSiteList_RNAFolding = map(calculateSingleBindingSite, inputList)
-
+        
     doubleBindingSiteList_RNAFolding = []       #list of tuples, (begin pos1, begin pos2, dG_total, dG1, dG2, dG_dimerization, ddG_RNA)                                                                  
     inputList = [[sequence, siteFoldingConstraint, sitepair] for sitepair in sortedDoubleBindingSiteList]
     if use_MP:
-        pool = mp.Pool(processes = len(inputList))
         doubleBindingSiteList_RNAFolding = pool.map(calculateDoubleBindingSite, inputList)
-        pool.close()
-        pool.join()
     else:
         doubleBindingSiteList_RNAFolding = map(calculateDoubleBindingSite, inputList)
 
@@ -349,6 +316,8 @@ def predictTranslationRatesSingleSites(inputList):
     #(sequence, start_codon_list, CsrA_begin_pos, dG_total, dG_protein, ddG_RNA, RNA_ref, RNA_bound, cutoffs) = inputs
     foldingConstraint = RNA_bound['foldingConstraint']
     siteLen = len(CsrA_siteFoldingConstraint)
+
+    #print "single site foldingConstraint: ", foldingConstraint
     outputList = []
     for start in start_codon_list:
         calc = OSTIRFactory(sequence, [start-1, start], rRNA = 'ACCTCCTTA', constraints = foldingConstraint, verbose = False)
@@ -357,9 +326,11 @@ def predictTranslationRatesSingleSites(inputList):
         additional_output_data_list = [result.addional_results() for result in calc.results]
         start_pos = output_data_list[0]['start_position']
         dG_RBS = output_data_list[0]['dG_total']
+        #print(dG_RBS, dG_total)
         most_5p_SD_nt_pos = additional_output_data_list[0]['most_5p_mRNA']
         footprint_pos = start_pos + 15
         tir_OFF = output_data_list[0]['expression']
+        #print(tir_OFF)
         
         if CsrA_begin_pos >= most_5p_SD_nt_pos and (CsrA_begin_pos + siteLen) <= footprint_pos:
             CsrA_steric_repression = math.exp(-beta * dG_protein)
@@ -368,7 +339,7 @@ def predictTranslationRatesSingleSites(inputList):
             tir_ON = tir_OFF
             CsrA_steric_repression = 1.0
         
-        #print("Pos %s: TIR changed to %s (steric repression was %s)" % (str(start_pos), str(round(tir_ON,2)), str(round(CsrA_steric_repression,2))))
+        print("Pos %s: TIR changed to %s (steric repression was %s)" % (str(start_pos), str(round(tir_ON,2)), str(round(CsrA_steric_repression,2))))
         
         outputList.append((start_pos, tir_ON))
     return outputList
@@ -419,13 +390,15 @@ def predictTranslationRatesDoubleSites(inputList):
             tir_ON = tir_OFF
             CsrA_steric_repression = 1.0
         
-        #print("Pos %s: TIR changed to %s (steric repression was %s)" % (str(start_pos), str(round(tir_ON,2)), str(round(CsrA_steric_repression,2))))
+        print("Pos %s: TIR changed to %s (steric repression was %s)" % (str(start_pos), str(round(tir_ON,2)), str(round(CsrA_steric_repression,2))))
         outputList.append( (start_pos, tir_ON) )
     return outputList
 
 def predictTranslationRates(sequence, start_codon_list, singleSites, doubleSites):
 
     siteLen = len(CsrA_siteFoldingConstraint)
+    
+    print("Harvesting OSTIRs")
     
     #Calculate mRNA translation rates in the absence of CsrA binding
     TranslationRates_free = []
@@ -440,10 +413,8 @@ def predictTranslationRates(sequence, start_codon_list, singleSites, doubleSites
     inputList = [ [sequence, start_codon_list] + list(inputs) for inputs in singleSites][0:15]
     #print("Number of Single Site translation rate predictions: ", len(inputList))
     if use_MP:
-        pool = mp.Pool(processes=len(inputList))
+        #print("Using MPI")
         translationRatesSingleSites = pool.map(predictTranslationRatesSingleSites, inputList)
-        pool.close()
-        pool.join()
     else:
         translationRatesSingleSites = map(predictTranslationRatesSingleSites, inputList) #list of lists
         translationRatesSingleSites = list(translationRatesSingleSites)
@@ -451,10 +422,7 @@ def predictTranslationRates(sequence, start_codon_list, singleSites, doubleSites
     inputList = [ [sequence, start_codon_list] + list(inputs) for inputs in doubleSites][0:15]
     #print("Number of Double Site translation rate predictions: ", len(inputList))
     if use_MP:
-        pool = mp.Pool(processes= len(inputList))
         translationRatesDoubleSites = pool.map(predictTranslationRatesDoubleSites, inputList) 
-        pool.close()
-        pool.join()
     else:
         translationRatesDoubleSites = map(predictTranslationRatesDoubleSites, inputList) #list of lists
         translationRatesDoubleSites = list(translationRatesDoubleSites)
@@ -696,44 +664,15 @@ def split_merge_binding_dict(gene,dictionary,binding_sites):
         merged_gene = pd.concat([gene_df, struct_dict_df], axis = 1)
     return merged_gene
 
-def run_biophysical_model(inputList,binding_sites,translation_rates):        
-
-    gene = inputList[0]
-    sequence = inputList[1]
-    translate = inputList[2]
-    startcodon = inputList[3]
-
-    try:
-        (sortedSingleBindingSiteList, sortedDoubleBindingSiteList) = calculateSortedBindingSitesbyEnergy(sequence, energy_matrix)
-        (sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding) = calculateFoldingFreeEnergies(use_MP, sequence, CsrA_siteFoldingConstraint, sortedSingleBindingSiteList, sortedDoubleBindingSiteList) 
-        binding_sites[gene] = (sequence, sortedSingleBindingSiteList_RNAFolding[0:300], sortedDoubleBindingSiteList_RNAFolding[0:300])
-
-        if translate == "y":
-            (sequence, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites) = predictTranslationRates(sequence, startcodon, sortedSingleBindingSiteList_RNAFolding[0:15], sortedDoubleBindingSiteList_RNAFolding[0:15])
-            print("Harvesting OSTIRs for " + str(gene))
-            translation_rates[gene] = (sequence, startcodon, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites)
-        print("gene " + str(gene) + " complete")
-        
-
-    except:
-        print("ERROR. Skipping %s gene." % gene)
-        print (traceback.format_exc())
-
-    #return calculationsDict
-
-def init_pool(var1):
-    global shared_data
-    shared_data = var1
-
 
 if __name__ == "__main__":
 
     print(80*"*")
-    print("    .----.   @   @ biophysical")
-    print('   / .-"-.`.  \ /             ')
-    print("  | | ''\ \ \_/ )       model ")
-    print(" ,-\ `-.' /.'  /              ")
-    print(" ---`----'----'        AL,2020")
+    print(r"    .----.   @   @ biophysical")
+    print(r"   / .-.-.`.  \ /             ")
+    print(r"  | | ''\ \ \_/ )       model ")
+    print(r" ,-\ `-.' /.'  /              ")
+    print(r" ---`----'----'        AL,2020")
     print(80*"*")
 
     parser = argparse.ArgumentParser(description='import csv with constraints for folding')
@@ -780,10 +719,6 @@ if __name__ == "__main__":
     #assign pwm options
     if options.pwm == "CsrA":
         energy_matrix = CsrA_freeEnergyMatrix
-    if options.pwm == "CsrA_MD":
-        energy_matrix = CsrA_MDgen_freeEnergyMatrix
-    if options.pwm == "RsmA_MD":
-        energy_matrix = RsmA_MD_freeEnergyMatrix
     if options.pwm == "RsmA_ddG":
         energy_matrix = RsmA_ddG_PWM
 
@@ -805,19 +740,22 @@ if __name__ == "__main__":
         (sequenceDict, startCodonDict) = inputSequencesFromExcel(filename, sheetName)
         #print(sequenceDict, startCodonDict)
     
-    #generate multiprocessing pool    
+    #parallel processing functions
     try:
-        physicalCores = int(mp.cpu_count()/4)
+        physicalCores = int(mp.cpu_count()/2)
         print("Number of nodes is %s" % str(physicalCores))
+        pool = mp.Pool(physicalCores)
+
         #if not pool.is_master():                                                                                                                                                                        
         #    pool.wait()                                                                                                                                                                                 
         #    sys.exit(0)                                                                                                                                                                                 
 
         if physicalCores > 1:
             use_MP = True
+            print("starting pool")
         else:
             use_MP = False
-            print("MPI = False")
+            print("MP = False")
 
     except:
         print("Could not start Pool. Stopping now.")
@@ -825,69 +763,72 @@ if __name__ == "__main__":
         use_MP = False
 
     if (use_MP):
-        seq_args = []
-        use_MP = False #just to force spawning a single pool to calc each gene
-        for gene,sequence in sequenceDict.items():
-            seq_args.append([gene,sequence.upper(),options.trans,startCodonDict[gene]])
+        calculationsDict = {}
+        calculationsDict['sites'] = {}
+        calculationsDict['translation'] = {}
+
+        geneCounter = 0
         print("Number of sequences: %s"  % len(sequenceDict.keys()))
-        
-        #set shared variable 
-        manager = mp.Manager()
-        binding_sites = manager.dict()
-        translation_rates = manager.dict()
+        for (gene, sequence) in sequenceDict.items():
+            try:
+                geneCounter += 1
+                #print("GENE #%s: %s" % geneCounter, gene)
+                #pool = mp.Pool(processes = physicalCores)
+                sequence.upper()
+                (sortedSingleBindingSiteList, sortedDoubleBindingSiteList) = calculateSortedBindingSitesbyEnergy(sequence, energy_matrix)
+                print("%s SINGLE BINDING SITES (CsrA only)" % len(sortedSingleBindingSiteList))
+                print("TOP 5: ", sortedSingleBindingSiteList[0:5])
+                print("%s DOUBLE BINDING SITES (CsrA only)" % len(sortedDoubleBindingSiteList))
+                print("TOP 5: ", sortedDoubleBindingSiteList[0:5])
+                (sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding) = calculateFoldingFreeEnergies(use_MP, sequence, CsrA_siteFoldingConstraint, sortedSingleBindingSiteList[0:15], sortedDoubleBindingSiteList[0:15]) 
+                print("TOP 5: SINGLE BINDING SITES (CsrA + RNA shape change)")
+                print([(begin_pos, dG_total, ddG_RNA, RNA_bound['structure']) for (begin_pos, dG_total, dG_protein, ddG_RNA, RNA_ref, RNA_bound, cutoffs) in sortedSingleBindingSiteList_RNAFolding[0:5]])
+                print("TOP 5: DOUBLE BINDING SITES (CsrA + RNA shape change)")
+                print([(pos1, pos2, dG_total, dG1, dG2, dG_dimerization, ddG_RNA, RNA_bound['structure']) for (pos1, pos2, dG_total, dG1, dG2, dG_dimerization, ddG_RNA, RNA_ref, RNA_bound, cutoffs) in sortedDoubleBindingSiteList_RNAFolding[0:5]])
+                print(80 * "*")
+                calculationsDict['sites'][gene] = (sequence, sortedSingleBindingSiteList_RNAFolding[0:300], sortedDoubleBindingSiteList_RNAFolding[0:300])
+                #print('single binding site list ' + str(sortedSingleBindingSiteList_RNAFolding))
+                #print('double binding site list ' + str(sortedDoubleBindingSiteList_RNAFolding))
 
-        #assign processes using mp.Process:
-        tt = time.time()
-        jobs = []
-        for i in seq_args:
-            jobs.append(mp.Process(target = run_biophysical_model, args = (i, binding_sites,translation_rates)))
-            
-        for i in range(len(seq_args)):
-            jobs[i].start()
-            print("gene " + str(seq_args[i][0]) + " calculations started")
-
-        for i in range(len(seq_args)):
-            jobs[i].join()
-        
-    #concatenate all dictionaries from pool processses using defaultdict:
-    #keyList = ['sites','translation']
-    #calculationsDict = {}
-
-    #for i in keyList:
-    #    calculationsDict[i] = {}
-
-    #print(type(calculationsDict))
-    #for i in range(len(calculationsDictList)):
-    #    calculationsDict['sites'].update(calculationsDictList[i]['sites'])
-    #    calculationsDict['translation'].update(calculationsDictList[i]['translation'])
-
-    #print(calculationsDict)
- 
+                if options.trans == "y":
+                    print("Starting RBS Calculator")
+                    start_codon_list = startCodonDict[gene]
+                    #print(start_codon_list)
+                    (sequence, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites) = predictTranslationRates(sequence, start_codon_list, sortedSingleBindingSiteList_RNAFolding[0:15], sortedDoubleBindingSiteList_RNAFolding[0:15])
+                    calculationsDict['translation'][gene] = (sequence, start_codon_list, TranslationRates_free, TranslationRatesSingleSites, TranslationRatesDoubleSites)
+                    #print(calculationsDict)
+                print("Predictions complete for " + str(gene))
+            except:
+                print("ERROR. Skipping %s gene." % gene)
+                print (traceback.format_exc())
+    if use_MP: 
+        pool.close()
+        pool.join()
+    
     handle = open(outputFilename + '.pkl','wb')
-    pickle.dump(binding_sites, handle)
+    pickle.dump(calculationsDict, handle)
     handle.close()
-
-    print("completed in : " + str(time.time()-tt))
 
     #export options----------------------------------------------------------
     if options.exp == 'excel':
         exportCalculationsToExcel(outputFilename, calculationsDict)
 
     if options.exp == 'csv':
+        binding_sites = calculationsDict['sites']
+        translation_rates = calculationsDict['translation']
         all_gene_list = []
+
         #process binding site data 
         for gene in binding_sites:
             #process initial weird formatting in dictionary
             sequence = binding_sites[gene][0]
             single_site_dict = binding_sites[gene][1]
             double_site_dict = binding_sites[gene][2]
-
             #split dictionaries and create dataframe for single sites 
             test_df = split_merge_binding_dict(gene,single_site_dict,1)
             test_df2 = split_merge_binding_dict(gene,double_site_dict,2)
             merged_df = pd.concat([test_df,test_df2], axis = 1)
             all_gene_list.append(merged_df)
-
         all_gene_df = pd.concat(all_gene_list)
         all_gene_df.to_csv("../data/binding_sites_" + options.o + '.csv')
 
@@ -914,3 +855,5 @@ if __name__ == "__main__":
                 translation_rate_list.append(translation_df)
             all_translation_df = pd.concat(translation_rate_list)
             all_translation_df.to_csv("../data/translation_rates_" + options.o + '.csv')
+
+    #if use_MP: pool.close()

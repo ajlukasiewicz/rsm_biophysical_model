@@ -1,18 +1,13 @@
 import sys, os, math, xlwt, xlrd, random, traceback, pickle, time 
-
-#sys.path.append('../../')
-#from DNAc import *
 import argparse
 import itertools
-#import RNA
 import pandas as pd
-#from RBS_Calculator import *
-#from RBS_Calculator_Vienna import *
 from ViennaRNA import *
 
 #set ostir fork in system path 
-sys.path.insert(0, '/Users/alexlukasiewicz/Documents/ostir')
-from ostir.ostir_factory import *
+sys.path.insert(0, '/Users/alex/Documents/rsm_biophysical_model/scripts/ostir')  #edit with path to ostir folder
+#from ostir.ostir import ostir_factory
+from ostir import *
 
 RNAEnergyModel = ViennaRNA
 
