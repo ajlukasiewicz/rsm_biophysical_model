@@ -21,4 +21,4 @@ An example for running the scripts locally
 `python3 biophysical_model_argparse.py -i ../data/example.xls -o example -pwm RsmA_ddG -translate n -export csv`
 
 For running the modeling scripts on compute clusters, the `multiprocess` module is used. 
-For these applications you can use `biophysical_model_argparse_MP2.py` which uses the same arguments defined above
+For these applications you can use `biophysical_model_argparse_MP.py` which uses the same arguments defined above
