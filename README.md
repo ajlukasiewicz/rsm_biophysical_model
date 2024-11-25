@@ -1,5 +1,6 @@
 ## RsmA biophysical model 
-Code to accompany "Thermodynamic Modeling of RsmA - mRNA Interactions Capture Novel Direct Binding Across the *Pseudomonas aeruginosa* Transcriptome" 
+Code to accompany "Thermodynamic Modeling of RsmA - mRNA Interactions Capture Novel Direct Binding Across the *Pseudomonas aeruginosa* Transcriptome"
+Preprint for this work can be found on [bioRxiv](https://www.biorxiv.org/content/10.1101/2024.08.01.606018v1)
 
 ## Organization 
 Scripts for executing and analyzing model data are provided in [scripts](https://github.com/ajlukasiewicz/rsm_biophysical_model/tree/main/scripts) 
