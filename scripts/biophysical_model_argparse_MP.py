@@ -742,7 +742,7 @@ if __name__ == "__main__":
     
     #parallel processing functions
     try:
-        physicalCores = int(mp.cpu_count()/2)
+        physicalCores = int(mp.cpu_count()/4)
         print("Number of nodes is %s" % str(physicalCores))
         pool = mp.Pool(physicalCores)
 
@@ -780,7 +780,7 @@ if __name__ == "__main__":
                 print("TOP 5: ", sortedSingleBindingSiteList[0:5])
                 print("%s DOUBLE BINDING SITES (CsrA only)" % len(sortedDoubleBindingSiteList))
                 print("TOP 5: ", sortedDoubleBindingSiteList[0:5])
-                (sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding) = calculateFoldingFreeEnergies(use_MP, sequence, CsrA_siteFoldingConstraint, sortedSingleBindingSiteList[0:15], sortedDoubleBindingSiteList[0:15]) 
+                (sortedSingleBindingSiteList_RNAFolding, sortedDoubleBindingSiteList_RNAFolding) = calculateFoldingFreeEnergies(use_MP, sequence, CsrA_siteFoldingConstraint, sortedSingleBindingSiteList, sortedDoubleBindingSiteList) 
                 print("TOP 5: SINGLE BINDING SITES (CsrA + RNA shape change)")
                 print([(begin_pos, dG_total, ddG_RNA, RNA_bound['structure']) for (begin_pos, dG_total, dG_protein, ddG_RNA, RNA_ref, RNA_bound, cutoffs) in sortedSingleBindingSiteList_RNAFolding[0:5]])
                 print("TOP 5: DOUBLE BINDING SITES (CsrA + RNA shape change)")
@@ -801,7 +801,7 @@ if __name__ == "__main__":
             except:
                 print("ERROR. Skipping %s gene." % gene)
                 print (traceback.format_exc())
-    if use_MP: 
+    #if use_MP: 
         pool.close()
         pool.join()
     
@@ -856,4 +856,4 @@ if __name__ == "__main__":
             all_translation_df = pd.concat(translation_rate_list)
             all_translation_df.to_csv("../data/translation_rates_" + options.o + '.csv')
 
-    #if use_MP: pool.close()
+   # if use_MP: pool.close()
